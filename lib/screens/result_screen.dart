@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../models/calculation_result.dart';
 import '../theme/nordart_theme.dart';
 import '../widgets/info_card.dart';
+import '../widgets/nordart_app_bar.dart';
 import '../widgets/nordart_button.dart';
 import '../widgets/nordart_card.dart';
-import '../widgets/nordart_app_bar.dart';
 import 'help_request_screen.dart';
 
 class ResultScreen extends StatelessWidget {
@@ -24,6 +26,23 @@ class ResultScreen extends StatelessWidget {
 
   String _formatDecimal(double value) {
     return value.toStringAsFixed(2).replaceAll('.', ',');
+  }
+
+  Future<void> _openNordArtWebsite(BuildContext context) async {
+    final uri = Uri.parse('https://nordart.hu');
+
+    final launched = await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+    );
+
+    if (!launched && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('A NordArt weboldala nem nyitható meg.'),
+        ),
+      );
+    }
   }
 
   Widget _detailRow({
@@ -92,9 +111,7 @@ class ResultScreen extends StatelessWidget {
                   color: Colors.white,
                   size: 46,
                 ),
-
                 const SizedBox(height: 16),
-
                 const Text(
                   'Szükséges fűtési teljesítmény',
                   textAlign: TextAlign.center,
@@ -104,9 +121,7 @@ class ResultScreen extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-
                 const SizedBox(height: 26),
-
                 Text(
                   '$wattText W',
                   textAlign: TextAlign.center,
@@ -117,9 +132,7 @@ class ResultScreen extends StatelessWidget {
                     letterSpacing: -1,
                   ),
                 ),
-
                 const SizedBox(height: 8),
-
                 Text(
                   '≈ $kwText kW',
                   style: const TextStyle(
@@ -128,9 +141,7 @@ class ResultScreen extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-
                 const SizedBox(height: 24),
-
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(18),
@@ -142,17 +153,17 @@ class ResultScreen extends StatelessWidget {
                     children: [
                       const Text(
                         'Ajánlott teljesítménytartomány',
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-
                       const SizedBox(height: 10),
-
                       Text(
-                        '${_formatWatt(result.recommendedMinWatt)} - ${_formatWatt(result.recommendedMaxWatt)} W',
+                        '${_formatWatt(result.recommendedMinWatt)}–'
+                        '${_formatWatt(result.recommendedMaxWatt)} W',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Colors.white,
@@ -163,11 +174,10 @@ class ResultScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 22),
-
                 const Text(
-                  'A megfelelő fűtési teljesítmény kiválasztása az első lépés a gazdaságos elektromos fűtéshez.',
+                  'A megfelelő fűtési teljesítmény kiválasztása az első '
+                  'lépés a gazdaságos elektromos fűtéshez.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white,
@@ -178,9 +188,7 @@ class ResultScreen extends StatelessWidget {
               ],
             ),
           ),
-
           const SizedBox(height: 28),
-
           const Text(
             'A számítás alapja',
             style: TextStyle(
@@ -188,9 +196,7 @@ class ResultScreen extends StatelessWidget {
               fontWeight: FontWeight.w800,
             ),
           ),
-
           const SizedBox(height: 14),
-
           NordArtCard(
             child: Column(
               children: [
@@ -199,37 +205,31 @@ class ResultScreen extends StatelessWidget {
                   label: 'Alapterület',
                   value: '${_formatDecimal(result.area)} m²',
                 ),
-
                 _detailRow(
                   icon: Icons.height,
                   label: 'Belmagasság',
                   value: '${_formatDecimal(result.height)} m',
                 ),
-
                 _detailRow(
                   icon: Icons.air_outlined,
                   label: 'Légtér',
                   value: '${_formatDecimal(result.volume)} m³',
                 ),
-
                 _detailRow(
                   icon: Icons.home_work_outlined,
                   label: 'Épület típusa',
                   value: result.buildingType,
                 ),
-
                 _detailRow(
                   icon: Icons.shower_outlined,
                   label: 'Fürdőszoba',
                   value: result.bathroom ? 'Igen' : 'Nem',
                 ),
-
                 _detailRow(
                   icon: Icons.thermostat_outlined,
                   label: 'Kívánt hőmérséklet',
                   value: '${result.temperature.toStringAsFixed(0)} °C',
                 ),
-
                 _detailRow(
                   icon: Icons.bolt_outlined,
                   label: 'Alkalmazott érték',
@@ -238,16 +238,15 @@ class ResultScreen extends StatelessWidget {
               ],
             ),
           ),
-
           const SizedBox(height: 20),
-
           const InfoCard(
             text:
-                'A számítás tájékoztató jellegű. A szükséges fűtési teljesítményt befolyásolhatja többek között a nyílászárók állapota, a tájolás, a födém és a padló hőszigetelése, valamint az épület egyéb adottságai.',
+                'A számítás tájékoztató jellegű. A szükséges fűtési '
+                'teljesítményt befolyásolhatja többek között a nyílászárók '
+                'állapota, a tájolás, a födém és a padló hőszigetelése, '
+                'valamint az épület egyéb adottságai.',
           ),
-
           const SizedBox(height: 24),
-
           NordArtButton(
             text: 'Szakértői segítséget kérek',
             icon: Icons.support_agent,
@@ -260,9 +259,30 @@ class ResultScreen extends StatelessWidget {
               );
             },
           ),
-
           const SizedBox(height: 12),
-
+          OutlinedButton.icon(
+            onPressed: () {
+              _openNordArtWebsite(context);
+            },
+            icon: const Icon(Icons.language),
+            label: const Text('Irány a NordArt weboldala'),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 56),
+              foregroundColor: NordArtTheme.primaryRed,
+              side: const BorderSide(
+                color: NordArtTheme.primaryRed,
+                width: 1.5,
+              ),
+              textStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
           NordArtButton(
             text: 'Vissza a kalkulátorhoz',
             icon: Icons.arrow_back,
@@ -270,7 +290,6 @@ class ResultScreen extends StatelessWidget {
               Navigator.pop(context);
             },
           ),
-
           const SizedBox(height: 20),
         ],
       ),

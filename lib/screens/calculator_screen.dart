@@ -1,8 +1,10 @@
-import '../widgets/nordart_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../services/heating_calculator.dart';
 import '../theme/nordart_theme.dart';
 import '../widgets/info_card.dart';
+import '../widgets/nordart_app_bar.dart';
 import '../widgets/nordart_button.dart';
 import '../widgets/nordart_card.dart';
 import '../widgets/nordart_text_field.dart';
@@ -51,8 +53,15 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   int get currentWattPerCubicMeter {
     int watt = HeatingCalculator.baseWatt(buildingType);
-    if (bathroom) watt += 5;
-    if (temperature > 23) watt += 5;
+
+    if (bathroom) {
+      watt += 5;
+    }
+
+    if (temperature > 23) {
+      watt += 5;
+    }
+
     return watt;
   }
 
@@ -84,6 +93,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     if (temperature > 23) {
       return 'Magasabb komfortigény (+5 W/m³)';
     }
+
     return 'Normál lakóhelyiség';
   }
 
@@ -106,7 +116,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       }
     });
 
-    if (areaError != null || heightError != null) return;
+    if (areaError != null || heightError != null) {
+      return;
+    }
 
     _formatInputs();
 
@@ -128,13 +140,34 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   void _decreaseTemperature() {
     if (temperature > 18) {
-      setState(() => temperature--);
+      setState(() {
+        temperature--;
+      });
     }
   }
 
   void _increaseTemperature() {
     if (temperature < 30) {
-      setState(() => temperature++);
+      setState(() {
+        temperature++;
+      });
+    }
+  }
+
+  Future<void> _openNordArtWebsite() async {
+    final uri = Uri.parse('https://nordart.hu');
+
+    final launched = await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+    );
+
+    if (!launched && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('A NordArt weboldala nem nyitható meg.'),
+        ),
+      );
     }
   }
 
@@ -142,6 +175,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     final selected = buildingType == type;
 
     IconData icon;
+
     if (type == 'Passzívház') {
       icon = Icons.energy_savings_leaf_outlined;
     } else if (type == 'Új építésű, jól szigetelt') {
@@ -167,7 +201,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             color: selected ? NordArtTheme.primaryRed : Colors.white,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: selected ? NordArtTheme.primaryRed : Colors.grey.shade300,
+              color: selected
+                  ? NordArtTheme.primaryRed
+                  : Colors.grey.shade300,
             ),
           ),
           child: Row(
@@ -217,7 +253,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           Text(
             comfortText,
             style: TextStyle(
-              color: temperature > 23 ? NordArtTheme.primaryRed : Colors.black54,
+              color: temperature > 23
+                  ? NordArtTheme.primaryRed
+                  : Colors.black54,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -229,7 +267,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   onPressed: _decreaseTemperature,
                   child: const Text(
                     '−',
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -239,7 +280,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   onPressed: _increaseTemperature,
                   child: const Text(
                     '+',
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -258,7 +302,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             contentPadding: EdgeInsets.zero,
             title: const Text(
               'Fürdőszoba',
-              style: TextStyle(fontWeight: FontWeight.w800),
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+              ),
             ),
             subtitle: const Text('+5 W/m³ korrekció'),
             value: bathroom,
@@ -324,7 +370,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const NordArtAppBar(
-         title: 'Kalkulátor',
+        title: 'Kalkulátor',
       ),
       body: ListView(
         padding: const EdgeInsets.all(24),
@@ -333,9 +379,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             'Adja meg a helyiség adatait',
             style: Theme.of(context).textTheme.headlineMedium,
           ),
-
           const SizedBox(height: 20),
-
           NordArtCard(
             child: Column(
               children: [
@@ -346,7 +390,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   unit: 'm²',
                   icon: Icons.square_foot_outlined,
                   errorText: areaError,
-                  onChanged: (_) => setState(() {}),
+                  onChanged: (_) {
+                    setState(() {});
+                  },
                   onEditingComplete: _formatInputs,
                 ),
                 const SizedBox(height: 18),
@@ -357,43 +403,58 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   unit: 'm',
                   icon: Icons.height,
                   errorText: heightError,
-                  onChanged: (_) => setState(() {}),
+                  onChanged: (_) {
+                    setState(() {});
+                  },
                   onEditingComplete: _formatInputs,
                 ),
               ],
             ),
           ),
-
           const SizedBox(height: 24),
-
           const SectionTitle(
             title: 'Épület hőszigetelése',
             icon: Icons.home_work_outlined,
           ),
-
           const SizedBox(height: 12),
-
           ...buildingTypes.map(_buildingTypeCard),
-
           const SizedBox(height: 16),
-
           _bathroomCard(),
-
           const SizedBox(height: 16),
-
           _temperatureSelector(),
-
           const SizedBox(height: 16),
-
           _liveSummary(),
-
           const SizedBox(height: 24),
-
           NordArtButton(
             text: 'Számítás',
             icon: Icons.bolt,
             onPressed: _calculate,
           ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: _openNordArtWebsite,
+            icon: const Icon(Icons.language),
+            label: const Text(
+              'Irány a NordArt weboldala',
+              textAlign: TextAlign.center,
+            ),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 56),
+              foregroundColor: NordArtTheme.primaryRed,
+              side: const BorderSide(
+                color: NordArtTheme.primaryRed,
+                width: 1.5,
+              ),
+              textStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
         ],
       ),
     );
